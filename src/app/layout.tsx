@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 // Font setup
@@ -19,9 +20,9 @@ function Header() {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <h1 className="text-xl font-bold">📈 StockPulse</h1>
         <nav className="space-x-4 text-sm">
-          <a href="/" className="hover:underline">Dashboard</a>
-          <a href="/watchlist" className="hover:underline">Watchlist</a>
-          <a href="/alerts" className="hover:underline">Alerts</a>
+          <Link href="/" className="hover:underline">Dashboard</Link>
+          <Link href="/watchlist" className="hover:underline">Watchlist</Link>
+          <Link href="/alerts" className="hover:underline">Alerts</Link>
         </nav>
       </div>
     </header>

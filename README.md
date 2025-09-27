@@ -1,36 +1,228 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📈 StockPulse - Real-time Stock Monitoring Platform
 
-## Getting Started
+> A modern, feature-rich stock monitoring application built with Next.js, featuring real-time tracking, intelligent alerts, and beautiful visualizations.
 
-First, run the development server:
+![StockPulse Banner](https://via.placeholder.com/1200x400/0f172a/ffffff?text=StockPulse+-+Real-time+Stock+Monitoring)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+### ✅ **Authentication System**
+- **Email/Password Authentication** with form validation
+- **Google OAuth Integration** (ready for implementation)
+- **Protected Routes** with automatic redirects
+- **Persistent Sessions** with localStorage
+- **Beautiful Glass-morphism UI** with animated backgrounds
+
+### ✅ **Modern UI/UX**
+- **Animated Background** with floating stock-related elements
+- **Glassmorphism Design** with backdrop blur effects
+- **Responsive Design** optimized for all devices
+- **Dark Theme** with professional gradient backgrounds
+- **Smooth Animations** and transitions throughout
+
+### 🔄 **Coming Soon**
+- Real-time stock price tracking
+- Customizable watchlists
+- Price alerts and notifications
+- Portfolio analytics and insights
+- Market trends and analysis
+- Mobile app with Capacitor
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS, Custom Animations
+- **Forms**: React Hook Form, Zod Validation
+- **Icons**: Lucide React
+- **Mobile**: Capacitor (Android support ready)
+- **State Management**: React Context API
+
+## 📦 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/TonyStark0801/stock-monitor-web.git
+   cd stock-monitor-web
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
+
+## 🏗 Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── api/auth/          # Authentication API routes
+│   ├── auth/              # Login/Register page
+│   ├── dashboard/         # Protected dashboard
+│   ├── watchlist/         # Stock watchlist page
+│   ├── alerts/            # Price alerts page
+│   ├── layout.tsx         # Root layout with providers
+│   └── page.tsx           # Landing page
+├── components/            # Reusable UI components
+│   ├── AnimatedBackground.tsx  # Canvas-based background animation
+│   ├── AuthForm.tsx           # Login/Register form
+│   ├── Header.tsx             # Navigation header
+│   └── ProtectedRoute.tsx     # Route protection wrapper
+├── contexts/              # React Context providers
+│   └── AuthContext.tsx    # Authentication state management
+├── types/                 # TypeScript type definitions
+│   └── auth.ts           # Authentication interfaces
+└── globals.css           # Global styles and animations
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎨 Design System
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### **Color Palette**
+- **Primary**: Blue (#3B82F6)
+- **Success**: Green (#10B981)
+- **Warning**: Orange (#F59E0B)
+- **Error**: Red (#EF4444)
+- **Background**: Gradient from #0F172A to #64748B
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### **Key Design Elements**
+- **Glassmorphism**: `backdrop-blur-md` with `bg-white/10`
+- **Animations**: Canvas-based floating elements
+- **Typography**: Geist Sans & Geist Mono fonts
+- **Spacing**: Consistent Tailwind spacing scale
 
-## Learn More
+## 🔐 Authentication Flow
 
-To learn more about Next.js, take a look at the following resources:
+### **Current Implementation**
+1. **Landing Page**: Showcases features with animated background
+2. **Auth Page**: Toggle between login/register with validation
+3. **Protected Routes**: Automatic redirection for unauthenticated users
+4. **Dashboard**: Personalized welcome with user information
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### **Mock Behavior (Development)**
+- Any email/password combination will authenticate
+- Google Sign-In creates a mock user account
+- Sessions persist across browser refreshes
+- Logout clears all stored authentication data
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### **Backend Integration Ready**
+- API routes structured for easy backend integration
+- Clear interfaces for user data and authentication responses
+- Environment variables ready for OAuth credentials
+- Token-based authentication flow implemented
 
-## Deploy on Vercel
+## 🛠 Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# Development
+npm run dev          # Start development server with Turbopack
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Mobile Development
+npm run build:android    # Build Android app with Capacitor
+```
+
+## 🚀 Deployment
+
+### **Vercel (Recommended)**
+1. Push code to GitHub
+2. Connect repository to Vercel
+3. Deploy with zero configuration
+
+### **Docker**
+```dockerfile
+# Dockerfile included in project root
+docker build -t stockpulse .
+docker run -p 3000:3000 stockpulse
+```
+
+### **Mobile App**
+```bash
+# Build and run Android app
+npm run build
+npx cap sync android
+npx cap run android
+```
+
+## 🔧 Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Google OAuth (when implementing)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Backend API URL (when integrating)
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# JWT Secret (for production)
+JWT_SECRET=your_jwt_secret_key
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 Development Roadmap
+
+### **Phase 1: Foundation** ✅
+- [x] Project setup and structure
+- [x] Authentication system
+- [x] Modern UI with animations
+- [x] Protected routes and navigation
+
+### **Phase 2: Core Features** 🔄
+- [ ] Real-time stock data integration
+- [ ] Watchlist management
+- [ ] Price alerts system
+- [ ] User preferences and settings
+
+### **Phase 3: Advanced Features** 📅
+- [ ] Portfolio analytics
+- [ ] Market insights and trends
+- [ ] Social features and sharing
+- [ ] Advanced charting and analysis
+
+### **Phase 4: Mobile & Scale** 📅
+- [ ] Mobile app optimization
+- [ ] Push notifications
+- [ ] Offline support
+- [ ] Performance optimizations
+
+## 🐛 Known Issues
+
+- Form validation messages need styling updates
+- Loading states can be improved
+- Need to implement proper error boundaries
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Shubham Mishra**
+- GitHub: [@TonyStark0801](https://github.com/TonyStark0801)
+- Project: [StockPulse](https://github.com/TonyStark0801/stock-monitor-web)
+
+---
+
+<div align="center">
+  <p>Built with ❤️ using Next.js and modern web technologies</p>
+  <p>⭐ Star this repo if you find it helpful!</p>
+</div>

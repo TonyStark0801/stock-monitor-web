@@ -42,11 +42,11 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm({
+  } = useForm<LoginCredentials | RegisterCredentials>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LoginCredentials | RegisterCredentials) => {
     try {
       if (isLogin) {
         await login(data as LoginCredentials);
@@ -54,7 +54,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
         await register(data as RegisterCredentials);
       }
       onSuccess?.();
-    } catch (error) {
+    } catch (_error) {
       setError('root', {
         message: isLogin ? 'Invalid email or password' : 'Registration failed. Please try again.',
       });
@@ -65,7 +65,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     try {
       await loginWithGoogle();
       onSuccess?.();
-    } catch (error) {
+    } catch (_error) {
       setError('root', {
         message: 'Google sign-in failed. Please try again.',
       });
@@ -138,8 +138,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   placeholder="Enter your full name"
                 />
               </div>
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              {!isLogin && (errors as any).name && (
+                <p className="text-red-500 text-sm mt-1">{(errors as any).name.message as string}</p>
               )}
             </div>
           )}
@@ -158,7 +158,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>
             )}
           </div>
 
@@ -183,7 +183,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-sm mt-1">{errors.password.message as string}</p>
             )}
           </div>
 
@@ -208,14 +208,14 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+              {!isLogin && (errors as any).confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{(errors as any).confirmPassword.message as string}</p>
               )}
             </div>
           )}
 
           {errors.root && (
-            <p className="text-red-500 text-sm text-center">{errors.root.message}</p>
+            <p className="text-red-500 text-sm text-center">{errors.root.message as string}</p>
           )}
 
           <button

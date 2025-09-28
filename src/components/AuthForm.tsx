@@ -8,6 +8,18 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginCredentials, RegisterCredentials } from '@/types/auth';
 
+type RegisterFormData = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -42,11 +54,11 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm({
+  } = useForm<RegisterFormData | LoginFormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LoginCredentials | RegisterCredentials) => {
     try {
       if (isLogin) {
         await login(data as LoginCredentials);
@@ -54,7 +66,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
         await register(data as RegisterCredentials);
       }
       onSuccess?.();
-    } catch (error) {
+    } catch (_error) {
       setError('root', {
         message: isLogin ? 'Invalid email or password' : 'Registration failed. Please try again.',
       });
@@ -65,7 +77,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     try {
       await loginWithGoogle();
       onSuccess?.();
-    } catch (error) {
+    } catch (_error) {
       setError('root', {
         message: 'Google sign-in failed. Please try again.',
       });
@@ -138,8 +150,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   placeholder="Enter your full name"
                 />
               </div>
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              {!isLogin && 'name' in errors && errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name.message as string}</p>
               )}
             </div>
           )}
@@ -158,7 +170,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>
             )}
           </div>
 
@@ -183,7 +195,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-sm mt-1">{errors.password.message as string}</p>
             )}
           </div>
 
@@ -208,14 +220,14 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+              {!isLogin && 'confirmPassword' in errors && errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message as string}</p>
               )}
             </div>
           )}
 
           {errors.root && (
-            <p className="text-red-500 text-sm text-center">{errors.root.message}</p>
+            <p className="text-red-500 text-sm text-center">{errors.root.message as string}</p>
           )}
 
           <button

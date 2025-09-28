@@ -2,6 +2,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Image from 'next/image';
+
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -21,10 +23,12 @@ export default function DashboardPage() {
                 </p>
               </div>
               {user?.avatar && (
-                <img
+                <Image
                   src={user.avatar}
                   alt="Profile"
-                  className="w-12 h-12 rounded-full"
+                  width={48}
+                  height={48}
+                  className="rounded-full"
                 />
               )}
             </div>

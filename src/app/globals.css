@@ -21,6 +21,26 @@ body {
   min-height: 100vh;
 }
 
+/* Capacitor Status Bar Safe Area Support */
+.capacitor-status-bar-safe {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Header specific status bar handling */
+.capacitor-header {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* For Android specifically - add extra padding */
+@media (max-width: 768px) {
+  .mobile-header-padding {
+    padding-top: max(1.5rem, env(safe-area-inset-top, 24px));
+  }
+}
+
 /* Custom gradient backgrounds for different themes */
 .bg-gradient-stock {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);

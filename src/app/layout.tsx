@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import CapacitorStatusBar from "@/components/CapacitorStatusBar";
 import "./globals.css";
 
 // Font setup
@@ -13,6 +14,13 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "StockPulse | Real-time Stock Monitoring",
   description: "Track stock trends, alerts, and insights in real-time.",
+};
+
+// Viewport configuration for mobile/Capacitor
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover'
 };
 
 function Footer() {
@@ -31,9 +39,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-stock text-white relative overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-stock text-white relative overflow-x-hidden capacitor-status-bar-safe`}
       >
         <AnimatedBackground />
+        <CapacitorStatusBar />
         <AuthProvider>
           <div className="flex flex-col min-h-screen relative z-10">
             <Header />

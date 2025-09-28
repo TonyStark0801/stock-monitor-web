@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import "./globals.css";
 
 // Font setup
@@ -12,22 +14,6 @@ export const metadata: Metadata = {
   title: "StockPulse | Real-time Stock Monitoring",
   description: "Track stock trends, alerts, and insights in real-time.",
 };
-
-
-function Header() {
-  return (
-    <header className="p-4 shadow-md bg-white dark:bg-gray-900 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold">📈 StockPulse</h1>
-        <nav className="space-x-4 text-sm">
-          <Link href="/" className="hover:underline">Dashboard</Link>
-          <Link href="/watchlist" className="hover:underline">Watchlist</Link>
-          <Link href="/alerts" className="hover:underline">Alerts</Link>
-        </nav>
-      </div>
-    </header>
-  );
-}
 
 function Footer() {
   return (
@@ -45,13 +31,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black dark:bg-black dark:text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-stock text-white relative overflow-x-hidden`}
       >
-        <div className="flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-1 max-w-7xl mx-auto w-full px-4">{children}</main>
-          <Footer />
-        </div>
+        <AnimatedBackground />
+        <AuthProvider>
+          <div className="flex flex-col min-h-screen relative z-10">
+            <Header />
+            <main className="flex-1 max-w-7xl mx-auto w-full px-4">{children}</main>
+            <Footer />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

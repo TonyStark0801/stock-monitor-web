@@ -34,10 +34,15 @@ body {
   padding-top: max(1rem, env(safe-area-inset-top));
 }
 
-/* For Android specifically - add extra padding */
+/* For Android specifically - add minimal padding */
 @media (max-width: 768px) {
   .mobile-header-padding {
-    padding-top: max(1.5rem, env(safe-area-inset-top, 24px));
+    padding-top: max(0.5rem, env(safe-area-inset-top, 8px));
+  }
+  
+  /* Reduce overall header padding on mobile */
+  .mobile-header {
+    padding: 0.75rem 1rem;
   }
 }
 

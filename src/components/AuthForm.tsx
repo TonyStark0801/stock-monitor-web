@@ -8,6 +8,18 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginCredentials, RegisterCredentials } from '@/types/auth';
 
+type RegisterFormData = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -42,7 +54,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<LoginCredentials | RegisterCredentials>({
+  } = useForm<RegisterFormData | LoginFormData>({
     resolver: zodResolver(schema),
   });
 
@@ -138,8 +150,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   placeholder="Enter your full name"
                 />
               </div>
-              {!isLogin && (errors as any).name && (
-                <p className="text-red-500 text-sm mt-1">{(errors as any).name.message as string}</p>
+              {!isLogin && 'name' in errors && errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name.message as string}</p>
               )}
             </div>
           )}
@@ -208,8 +220,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {!isLogin && (errors as any).confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{(errors as any).confirmPassword.message as string}</p>
+              {!isLogin && 'confirmPassword' in errors && errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message as string}</p>
               )}
             </div>
           )}

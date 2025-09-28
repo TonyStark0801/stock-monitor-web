@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import Image from 'next/image';
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -24,7 +25,7 @@ export default function Header() {
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
                 {user?.avatar && (
-                  <img
+                  <Image
                     src={user.avatar}
                     alt="Profile"
                     className="w-8 h-8 rounded-full"

@@ -8,7 +8,7 @@ export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <header className="p-4 mobile-header shadow-lg bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-blue-900/20 backdrop-blur-md border-b border-blue-500/30 sticky top-0 z-50 capacitor-header mobile-header-padding">
+    <header className="p-4 mobile-header shadow-lg bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-blue-900/20 backdrop-blur-md border-b border-blue-500/30 md:sticky mobile-sticky-header md:top-0 z-50 capacitor-header mobile-header-padding">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2 group hover:scale-105 transition-transform duration-200">
           <div className="relative">

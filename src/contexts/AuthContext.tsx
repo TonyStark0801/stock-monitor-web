@@ -11,11 +11,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session on mount
-    checkAuthStatus();
+    // Fast initial check - non-blocking
+    const quickCheck = () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData');
+        if (token && userData) {
+          setUser(JSON.parse(userData));
+        }
+      } catch (error) {
+        console.error('Quick auth check failed:', error);
+      }
+      setIsLoading(false);
+    };
+
+    // Use setTimeout to make it non-blocking
+    setTimeout(quickCheck, 0);
   }, []);
 
-  const checkAuthStatus = async () => {
+  const _checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {

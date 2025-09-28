@@ -18,6 +18,7 @@ export default function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const elementsRef = useRef<FloatingElement[]>([]);
   const animationRef = useRef<number>(0);
+  const lastFrameTime = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,7 +39,8 @@ export default function AnimatedBackground() {
     // Initialize floating elements
     const initElements = () => {
       elementsRef.current = [];
-      const elementCount = Math.floor((canvas.width * canvas.height) / 15000);
+      // Reduce element count for better performance
+      const elementCount = Math.min(Math.floor((canvas.width * canvas.height) / 25000), 30);
 
       for (let i = 0; i < elementCount; i++) {
         elementsRef.current.push({
@@ -133,8 +135,15 @@ export default function AnimatedBackground() {
       ctx.restore();
     };
 
-    // Animation loop
-    const animate = () => {
+    // Animation loop with frame rate throttling
+    const animate = (currentTime: number) => {
+      // Throttle to ~30 FPS for better performance
+      if (currentTime - lastFrameTime.current < 33) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime.current = currentTime;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       elementsRef.current.forEach((element) => {
@@ -169,7 +178,8 @@ export default function AnimatedBackground() {
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    // Start animation with initial timestamp
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);

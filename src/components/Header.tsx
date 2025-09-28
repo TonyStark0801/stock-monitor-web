@@ -8,7 +8,7 @@ export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <header className="p-4 shadow-lg bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <header className="p-4 shadow-lg bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50 capacitor-header mobile-header-padding">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-bold hover:opacity-80">
           📈 StockPulse

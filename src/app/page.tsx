@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { TrendingUp, Shield, Bell, BarChart3 } from 'lucide-react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -18,11 +19,7 @@ export default function Home() {
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (isAuthenticated) {

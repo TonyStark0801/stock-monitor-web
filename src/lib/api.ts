@@ -1,6 +1,6 @@
 // API utility functions for backend integration
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
 
 interface ApiResponse<T = unknown> {
   success: boolean;
@@ -20,13 +20,62 @@ interface RegisterRequest {
   password: string;
 }
 
+interface RegisterResponse {
+  token: string;
+  tokenType?: string;
+  userId?: string | null;
+  email?: string;
+  name?: string;
+  message?: string;
+  enabled?: boolean;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    enabled?: boolean;
+  };
+}
+
+interface GenerateOtpRequest {
+  email: string;
+  password: string;
+}
+
+interface GenerateOtpResponse {
+  transactionId: string;
+  message: string;
+}
+
+interface ValidateOtpRequest {
+  email: string;
+  transactionId: string;
+  otp: string;
+}
+
+interface ValidateOtpResponse {
+  token: string;
+  tokenType?: string;
+  userId?: string;
+  email?: string;
+  name?: string;
+  message?: string;
+  enabled: boolean;
+}
+
 interface AuthResponse {
   token: string;
-  user: {
+  tokenType?: string;
+  userId?: string;
+  email?: string;
+  name?: string;
+  message?: string;
+  enabled?: boolean;
+  user?: {
     id: string;
     email: string;
     name: string;
     avatar?: string;
+    enabled?: boolean;
   };
 }
 
@@ -74,17 +123,53 @@ async function apiCall<T>(
 
 // Authentication API functions
 export const authAPI = {
-  // Register new user
-  register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-    const response = await apiCall<AuthResponse>('/auth/register', {
+  // Register new user - returns token and user info with enabled flag
+  register: async (userData: RegisterRequest): Promise<RegisterResponse> => {
+    const response = await apiCall<RegisterResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-    
+
     if (!response.success || !response.data) {
       throw new ApiError(400, response.error || 'Registration failed');
     }
-    
+
+    return response.data;
+  },
+
+  // Generate OTP for email verification
+  generateOtp: async (email: string, password: string): Promise<GenerateOtpResponse> => {
+    const response = await apiCall<GenerateOtpResponse>('/auth/generateOtp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CLIENT-EMAIL': email,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.success || !response.data) {
+      throw new ApiError(400, response.error || 'Failed to generate OTP');
+    }
+
+    return response.data;
+  },
+
+  // Validate OTP
+  validateOtp: async (email: string, transactionId: string, otp: string): Promise<ValidateOtpResponse> => {
+    const response = await apiCall<ValidateOtpResponse>('/auth/validateOtp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CLIENT-EMAIL': email,
+      },
+      body: JSON.stringify({ transactionId, otp }),
+    });
+
+    if (!response.success || !response.data) {
+      throw new ApiError(400, response.error || 'OTP validation failed');
+    }
+
     return response.data;
   },
 
@@ -94,11 +179,11 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-    
+
     if (!response.success || !response.data) {
       throw new ApiError(401, response.error || 'Invalid credentials');
     }
-    
+
     return response.data;
   },
 
@@ -110,7 +195,7 @@ export const authAPI = {
         Authorization: `Bearer ${token}`,
       },
     });
-    
+
     return response.success;
   },
 
@@ -118,6 +203,108 @@ export const authAPI = {
   logout: async (token: string) => {
     const response = await apiCall('/auth/logout', {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.success;
+  },
+};
+
+// Stock and Watchlist API functions
+export const stockAPI = {
+  // Get user's watchlist
+  getWatchlist: async (token: string) => {
+    const response = await apiCall('/watchlist', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    return response.data;
+  },
+
+  // Add stock to watchlist
+  addToWatchlist: async (token: string, symbol: string) => {
+    const response = await apiCall('/watchlist', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ symbol }),
+    });
+    
+    return response.data;
+  },
+
+  // Remove stock from watchlist
+  removeFromWatchlist: async (token: string, symbol: string) => {
+    const response = await apiCall(`/watchlist/${symbol}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    return response.success;
+  },
+
+  // Get stock data
+  getStock: async (symbol: string) => {
+    const response = await apiCall(`/stocks/${symbol}`, {
+      method: 'GET',
+    });
+    
+    return response.data;
+  },
+
+  // Search stocks
+  searchStocks: async (query: string) => {
+    const response = await apiCall(`/stocks/search?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+    });
+    
+    return response.data;
+  },
+};
+
+// Alerts API functions
+export const alertsAPI = {
+  // Get user's alerts
+  getAlerts: async (token: string) => {
+    const response = await apiCall('/alerts', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    return response.data;
+  },
+
+  // Create new alert
+  createAlert: async (token: string, alertData: {
+    symbol: string;
+    condition: 'above' | 'below';
+    targetPrice: number;
+  }) => {
+    const response = await apiCall('/alerts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(alertData),
+    });
+    
+    return response.data;
+  },
+
+  // Delete alert
+  deleteAlert: async (token: string, alertId: string) => {
+    const response = await apiCall(`/alerts/${alertId}`, {
+      method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },

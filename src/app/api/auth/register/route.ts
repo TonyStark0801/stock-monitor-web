@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward request to your actual backend API
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
     
     try {
       const backendResponse = await fetch(`${backendUrl}/auth/register`, {
@@ -57,10 +57,14 @@ export async function POST(request: NextRequest) {
       const backendData = await backendResponse.json();
 
       if (!backendResponse.ok) {
+        // Extract error message from backend response
+        const errorMessage = backendData.message || backendData.error || 'Registration failed';
+
         return NextResponse.json(
-          { 
+          {
             success: false,
-            error: backendData.error || backendData.message || 'Registration failed' 
+            error: errorMessage,
+            errorCode: backendData.errorCode
           },
           { status: backendResponse.status }
         );
@@ -74,27 +78,10 @@ export async function POST(request: NextRequest) {
 
     } catch (backendError) {
       console.error('Backend connection failed:', backendError);
-      
-      // For development: Return mock response if backend is unavailable
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using mock response for development');
-        return NextResponse.json({
-          success: true,
-          data: {
-            token: `mock-jwt-token-${Date.now()}`,
-            user: {
-              id: `mock-${Date.now()}`,
-              email: email,
-              name: name,
-            }
-          }
-        });
-      }
-
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: 'Backend service unavailable' 
+          error: 'Backend service unavailable'
         },
         { status: 503 }
       );

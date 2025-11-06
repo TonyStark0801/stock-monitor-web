@@ -1,31 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// This is your Next.js API route - it acts as a proxy to your backend
-// In production, you might not need this if you call your backend directly
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { email, transactionId, otp } = body;
 
     // Validate required fields
-    if (!email || !password) {
+    if (!email || !transactionId || !otp) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required fields: email and password are required'
+          error: 'Missing required fields: email, transactionId, and otp are required'
         },
         { status: 400 }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Validate OTP format (6 digits)
+    if (!/^\d{6}$/.test(otp)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid email format'
+          error: 'OTP must be a 6-digit number'
         },
         { status: 400 }
       );
@@ -35,19 +31,20 @@ export async function POST(request: NextRequest) {
     const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
 
     try {
-      const backendResponse = await fetch(`${backendUrl}/auth/login`, {
+      const backendResponse = await fetch(`${backendUrl}/auth/validateOtp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CLIENT-EMAIL': email,
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ transactionId, otp }),
       });
 
       const backendData = await backendResponse.json();
 
       if (!backendResponse.ok) {
         // Extract error message from backend response
-        const errorMessage = backendData.message || backendData.error || 'Login failed';
+        const errorMessage = backendData.message || backendData.error || 'OTP validation failed';
 
         return NextResponse.json(
           {
@@ -66,7 +63,7 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (backendError) {
-      console.error('Backend connection failed:', backendError);      
+      console.error('Backend connection failed:', backendError);
       return NextResponse.json(
         {
           success: false,
@@ -77,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Login API error:', error);
+    console.error('Validate OTP API error:', error);
     return NextResponse.json(
       {
         success: false,

@@ -39,9 +39,10 @@ interface AuthFormProps {
   mode: 'login' | 'register';
   onToggleMode: () => void;
   onSuccess?: () => void;
+  onShowOTP?: (email: string, password: string) => void;
 }
 
-export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProps) {
+export default function AuthForm({ mode, onToggleMode, onSuccess, onShowOTP }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { login, register, loginWithGoogle, isLoading } = useAuth();
@@ -61,14 +62,44 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
   const onSubmit = async (data: LoginCredentials | RegisterCredentials) => {
     try {
       if (isLogin) {
-        await login(data as LoginCredentials);
+        const loginData = data as LoginCredentials;
+        const response = await login(loginData);
+
+        // Check if email verification is required
+        if (response.needsVerification) {
+          // Show OTP verification screen
+          if (onShowOTP) {
+            onShowOTP(loginData.email, loginData.password);
+          }
+        } else {
+          // User is verified, redirect to success
+          onSuccess?.();
+        }
       } else {
-        await register(data as RegisterCredentials);
+        // Registration returns enabled flag (flat or nested structure)
+        const registerData = data as RegisterCredentials;
+        const response = await register(registerData);
+
+        // Check if email verification is required (enabled: false)
+        // Handle both flat structure (enabled directly) and nested structure (user.enabled)
+        const enabled = response.enabled ?? response.user?.enabled ?? true;
+
+        if (!enabled) {
+          // Show OTP verification screen
+          if (onShowOTP) {
+            onShowOTP(registerData.email, registerData.password);
+          }
+        } else {
+          // User is already verified, redirect to success
+          onSuccess?.();
+        }
       }
-      onSuccess?.();
-    } catch (_error) {
+    } catch (error: any) {
+      // Extract error message from backend
+      const errorMessage = error?.message || (isLogin ? 'Invalid email or password' : 'Registration failed. Please try again.');
+
       setError('root', {
-        message: isLogin ? 'Invalid email or password' : 'Registration failed. Please try again.',
+        message: errorMessage,
       });
     }
   };
@@ -151,7 +182,9 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                 />
               </div>
               {!isLogin && 'name' in errors && errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message as string}</p>
+                <div className="mt-2 p-2 bg-red-500/20 border border-red-500/50 rounded">
+                  <p className="text-red-100 text-sm">{errors.name.message as string}</p>
+                </div>
               )}
             </div>
           )}
@@ -170,7 +203,9 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>
+              <div className="mt-2 p-2 bg-red-500/20 border border-red-500/50 rounded">
+                <p className="text-red-100 text-sm">{errors.email.message as string}</p>
+              </div>
             )}
           </div>
 
@@ -195,7 +230,9 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message as string}</p>
+              <div className="mt-2 p-2 bg-red-500/20 border border-red-500/50 rounded">
+                <p className="text-red-100 text-sm">{errors.password.message as string}</p>
+              </div>
             )}
           </div>
 
@@ -221,13 +258,17 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                 </button>
               </div>
               {!isLogin && 'confirmPassword' in errors && errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message as string}</p>
+                <div className="mt-2 p-2 bg-red-500/20 border border-red-500/50 rounded">
+                  <p className="text-red-100 text-sm">{errors.confirmPassword.message as string}</p>
+                </div>
               )}
             </div>
           )}
 
           {errors.root && (
-            <p className="text-red-500 text-sm text-center">{errors.root.message as string}</p>
+            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+              <p className="text-red-100 text-sm text-center font-medium">{errors.root.message as string}</p>
+            </div>
           )}
 
           <button

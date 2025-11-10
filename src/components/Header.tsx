@@ -45,7 +45,7 @@ export default function Header() {
         ) : (
           <div className="flex items-center space-x-4">
             <Link 
-              href="/login" 
+              href="/auth" 
               className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Sign In

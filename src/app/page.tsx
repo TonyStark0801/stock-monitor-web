@@ -67,13 +67,13 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             <Link 
-              href="/login"
+              href="/auth"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               Get Started
             </Link>
             <Link 
-              href="/login"
+              href="/auth"
               className="border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               Sign In
@@ -151,7 +151,7 @@ export default function Home() {
             Join thousands of investors who trust StockPulse for their market insights.
           </p>
           <Link 
-            href="/login"
+            href="/auth"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 inline-block shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             Sign Up Free

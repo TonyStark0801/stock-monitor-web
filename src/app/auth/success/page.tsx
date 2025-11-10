@@ -26,7 +26,7 @@ function OAuthSuccessContent() {
           setStatus('error');
           setErrorMessage(decodeURIComponent(error));
           setTimeout(() => {
-            router.push('/login?error=oauth_failed');
+            router.push('/auth?error=oauth_failed');
           }, 3000);
           return;
         }
@@ -36,7 +36,7 @@ function OAuthSuccessContent() {
           setStatus('error');
           setErrorMessage('Missing required authentication parameters');
           setTimeout(() => {
-            router.push('/login?error=oauth_failed');
+            router.push('/auth?error=oauth_failed');
           }, 3000);
           return;
         }
@@ -60,7 +60,7 @@ function OAuthSuccessContent() {
         setStatus('error');
         setErrorMessage('Failed to process authentication');
         setTimeout(() => {
-          router.push('/login?error=oauth_failed');
+          router.push('/auth?error=oauth_failed');
         }, 3000);
       }
     };

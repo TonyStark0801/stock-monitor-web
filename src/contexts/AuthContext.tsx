@@ -51,9 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const enabled = authData.enabled ?? authData.user?.enabled ?? true;
 
       if (!enabled) {
-        // User needs email verification, store credentials temporarily
+        // User needs email verification, store credentials and token temporarily
         sessionStorage.setItem('pendingVerificationEmail', credentials.email);
         sessionStorage.setItem('pendingVerificationPassword', credentials.password);
+        sessionStorage.setItem('pendingVerificationToken', authData.token);
         return { needsVerification: true, email: credentials.email };
       }
 
@@ -95,9 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const enabled = registerData.enabled ?? registerData.user?.enabled ?? true;
 
       if (!enabled) {
-        // User needs email verification, store credentials temporarily
+        // User needs email verification, store credentials and token temporarily
         sessionStorage.setItem('pendingVerificationEmail', credentials.email);
         sessionStorage.setItem('pendingVerificationPassword', credentials.password);
+        sessionStorage.setItem('pendingVerificationToken', registerData.token);
       } else {
         // User is already verified, store token and user data
         const user = registerData.user || {
@@ -127,7 +129,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const generateOtp = async (email: string, password: string): Promise<GenerateOtpResponse> => {
     setIsLoading(true);
     try {
-      const response = await authAPI.generateOtp(email, password);
+      // Get the pending verification token from sessionStorage
+      const token = sessionStorage.getItem('pendingVerificationToken');
+      if (!token) {
+        throw new Error('No pending verification token found');
+      }
+
+      const response = await authAPI.generateOtp(email, password, token);
       return response;
     } catch (error) {
       console.error('OTP generation failed:', error);
@@ -140,8 +148,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const validateOtp = async (email: string, transactionId: string, otp: string): Promise<void> => {
     setIsLoading(true);
     try {
+      // Get the pending verification token from sessionStorage
+      const token = sessionStorage.getItem('pendingVerificationToken');
+      if (!token) {
+        throw new Error('No pending verification token found');
+      }
+
       // Validate OTP with backend - returns token and user data
-      const response = await authAPI.validateOtp(email, transactionId, otp);
+      const response = await authAPI.validateOtp(email, transactionId, otp, token);
 
       if (response.enabled) {
         // OTP validated successfully, use the token from the response
@@ -157,9 +171,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('userData', JSON.stringify(user));
         setUser(user);
 
-        // Clear temporary credentials
+        // Clear temporary credentials and token
         sessionStorage.removeItem('pendingVerificationEmail');
         sessionStorage.removeItem('pendingVerificationPassword');
+        sessionStorage.removeItem('pendingVerificationToken');
       } else {
         throw new Error('Email verification failed');
       }

@@ -138,12 +138,13 @@ export const authAPI = {
   },
 
   // Generate OTP for email verification
-  generateOtp: async (email: string, password: string): Promise<GenerateOtpResponse> => {
+  generateOtp: async (email: string, password: string, token: string): Promise<GenerateOtpResponse> => {
     const response = await apiCall<GenerateOtpResponse>('/auth/generateOtp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CLIENT-EMAIL': email,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ email, password }),
     });
@@ -156,12 +157,13 @@ export const authAPI = {
   },
 
   // Validate OTP
-  validateOtp: async (email: string, transactionId: string, otp: string): Promise<ValidateOtpResponse> => {
+  validateOtp: async (email: string, transactionId: string, otp: string, token: string): Promise<ValidateOtpResponse> => {
     const response = await apiCall<ValidateOtpResponse>('/auth/validateOtp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CLIENT-EMAIL': email,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ transactionId, otp }),
     });

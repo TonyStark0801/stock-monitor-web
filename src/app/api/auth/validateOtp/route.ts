@@ -27,6 +27,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get Authorization header from request
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing Authorization header'
+        },
+        { status: 401 }
+      );
+    }
+
     // Forward request to your actual backend API
     const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
 
@@ -36,6 +48,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
           'X-CLIENT-EMAIL': email,
+          'Authorization': authHeader,
         },
         body: JSON.stringify({ transactionId, otp }),
       });

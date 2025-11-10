@@ -11,27 +11,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session on mount
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        // TODO: Verify token with your backend
-        // For now, we'll simulate a user from stored data
+    // Fast initial check - non-blocking
+    const quickCheck = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
         const userData = localStorage.getItem('userData');
-        if (userData) {
-          setUser(JSON.parse(userData));
+        
+        if (token && userData) {
+          const user = JSON.parse(userData);
+          setUser(user);
+          
+          // Optionally verify token with backend in background
+          try {
+            const isValid = await authAPI.verifyToken(token);
+            if (!isValid) {
+              // Token is invalid, clear storage
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userData');
+              setUser(null);
+            }
+          } catch (error) {
+            // If verification fails, keep user logged in but log the error
+            console.warn('Token verification failed:', error);
+          }
         }
+      } catch (error) {
+        console.error('Quick auth check failed:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    // Use setTimeout to make it non-blocking
+    setTimeout(quickCheck, 0);
+  }, []);
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     setIsLoading(true);
@@ -107,46 +120,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // OAuth login - redirect to backend OAuth endpoint
   const loginWithGoogle = async (): Promise<void> => {
     try {
-      // TODO: Implement Google OAuth flow
-      // For now, simulate Google login
-      const mockUser: User = {
-        id: 'google-1',
-        email: 'user@gmail.com',
-        name: 'Google User',
-        avatar: 'https://via.placeholder.com/40',
-      };
+      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+      const oauthUrl = `${backendUrl}/v1/api/auth/oauth2/authorization/google`;
       
-      localStorage.setItem('authToken', 'google-mock-token');
-      localStorage.setItem('userData', JSON.stringify(mockUser));
-      setUser(mockUser);
-      
-      console.log('Google login simulation - implement OAuth flow');
+      // Redirect to backend OAuth endpoint
+      window.location.href = oauthUrl;
     } catch (error) {
-      console.error('Google login failed:', error);
+      console.error('Google OAuth redirect failed:', error);
       throw error;
     }
   };
 
-  const logout = () => {
+  // Handle OAuth success (called from success page)
+  const handleOAuthSuccess = (token: string, userInfo: { email: string; name: string; userId: string }) => {
+    const user: User = {
+      id: userInfo.userId,
+      email: userInfo.email,
+      name: userInfo.name,
+    };
+
+    // Store token and user data
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userData', JSON.stringify(user));
+    setUser(user);
+    setIsLoading(false);
+  };
+
+  const logout = async () => {
+    // Clear local storage
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     setUser(null);
   };
 
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+    handleOAuthSuccess, // Add this to the context type
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-        loginWithGoogle,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

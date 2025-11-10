@@ -1,6 +1,7 @@
-<<<<<<< Updated upstream
-"use client"
+'use client';
+
 import { useEffect, useState } from "react";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function WatchlistPage() {
   const [message, setMessage] = useState("");
@@ -13,29 +14,13 @@ export default function WatchlistPage() {
   }, []);
 
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">📈 Watchlist</h1>
-      <p className="mt-4 text-lg">
-        {message ? message : "Loading from Spring Boot..."}
-      </p>
-    </main>
-  );
-}
-
-=======
-'use client';
-
-import ProtectedRoute from '@/components/ProtectedRoute';
-
-export default function WatchlistPage() {
-  return (
     <ProtectedRoute>
       <div className="py-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-8">
             My Watchlist
           </h1>
-          
+
           <div className="bg-white/10 backdrop-blur-md shadow-xl rounded-lg p-8 text-center border border-white/20">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +28,7 @@ export default function WatchlistPage() {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">
-              No stocks in your watchlist yet
+              {message ? message : "Loading from Spring Boot..."}
             </h3>
             <p className="text-gray-300 mb-6">
               Start building your watchlist by adding stocks you want to monitor.
@@ -57,4 +42,3 @@ export default function WatchlistPage() {
     </ProtectedRoute>
   );
 }
->>>>>>> Stashed changes

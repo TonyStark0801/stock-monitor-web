@@ -23,6 +23,9 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 interface AuthFormProps {
   mode: 'login' | 'register';
   onToggleMode: () => void;
@@ -35,18 +38,35 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
   const { login, register, loginWithGoogle, isLoading } = useAuth();
 
   const isLogin = mode === 'login';
-  const schema = isLogin ? loginSchema : registerSchema;
 
-  const {
-    register: registerField,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm({
-    resolver: zodResolver(schema),
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: any) => {
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const {
+    register: registerLoginField,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors },
+    setError: setLoginError,
+  } = loginForm;
+
+  const {
+    register: registerRegisterField,
+    handleSubmit: handleRegisterSubmit,
+    formState: { errors: registerErrors },
+    setError: setRegisterError,
+  } = registerForm;
+
+  const registerField = isLogin ? registerLoginField : registerRegisterField;
+  const handleSubmit = isLogin ? handleLoginSubmit : handleRegisterSubmit;
+  const errors = isLogin ? loginErrors : registerErrors;
+  const setError = isLogin ? setLoginError : setRegisterError;
+
+  const onSubmit = async (data: LoginFormData | RegisterFormData) => {
     try {
       if (isLogin) {
         await login(data as LoginCredentials);
@@ -54,7 +74,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
         await register(data as RegisterCredentials);
       }
       onSuccess?.();
-    } catch (error) {
+    } catch (err) {
+      console.error('Form submission error:', err);
       setError('root', {
         message: isLogin ? 'Invalid email or password' : 'Registration failed. Please try again.',
       });
@@ -65,7 +86,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
     try {
       await loginWithGoogle();
       onSuccess?.();
-    } catch (error) {
+    } catch (err) {
+      console.error('Google sign-in error:', err);
       setError('root', {
         message: 'Google sign-in failed. Please try again.',
       });
@@ -132,14 +154,14 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  {...registerField('name')}
+                  {...registerRegisterField('name')}
                   type="text"
                   className="w-full pl-10 pr-4 py-3 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 text-white placeholder-gray-400"
                   placeholder="Enter your full name"
                 />
               </div>
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              {'name' in registerErrors && registerErrors.name && (
+                <p className="text-red-500 text-sm mt-1">{registerErrors.name.message}</p>
               )}
             </div>
           )}
@@ -151,7 +173,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                {...registerField('email')}
+                {...(isLogin ? registerLoginField('email') : registerRegisterField('email'))}
                 type="email"
                 className="w-full pl-10 pr-4 py-3 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 text-white placeholder-gray-400"
                 placeholder="Enter your email"
@@ -169,7 +191,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                {...registerField('password')}
+                {...(isLogin ? registerLoginField('password') : registerRegisterField('password'))}
                 type={showPassword ? 'text' : 'password'}
                 className="w-full pl-10 pr-12 py-3 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 text-white placeholder-gray-400"
                 placeholder="Enter your password"
@@ -195,7 +217,7 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  {...registerField('confirmPassword')}
+                  {...registerRegisterField('confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
                   className="w-full pl-10 pr-12 py-3 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 text-white placeholder-gray-400"
                   placeholder="Confirm your password"
@@ -208,8 +230,8 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+              {'confirmPassword' in registerErrors && registerErrors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{registerErrors.confirmPassword.message}</p>
               )}
             </div>
           )}

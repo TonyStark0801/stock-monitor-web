@@ -123,8 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // OAuth login - redirect to backend OAuth endpoint
   const loginWithGoogle = async (): Promise<void> => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
-      const oauthUrl = `${backendUrl}/v1/api/auth/oauth2/authorization/google`;
+      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
+      const oauthUrl = `${backendUrl}/auth/oauth2/authorization/google`;
       
       // Redirect to backend OAuth endpoint
       window.location.href = oauthUrl;

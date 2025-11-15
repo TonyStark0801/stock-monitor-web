@@ -114,10 +114,10 @@ export default function AuthForm({ mode, onToggleMode, onSuccess }: AuthFormProp
         <button
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl mb-6"
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/30 rounded-lg bg-white/10 hover:bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mb-6"
         >
           {isLoading ? (
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600"></div>
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
           ) : (
             <>
               <svg className="w-5 h-5" viewBox="0 0 24 24">

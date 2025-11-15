@@ -1,6 +1,6 @@
 // API utility functions for backend integration
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
 
 interface ApiResponse<T = unknown> {
   success: boolean;
@@ -102,16 +102,63 @@ export const authAPI = {
     return response.data;
   },
 
-  // Verify token (optional - for checking if user is still authenticated)
-  verifyToken: async (token: string) => {
-    const response = await apiCall('/auth/verify', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    return response.success;
+  // Exchange OAuth code for token with PKCE validation (secure - code is single-use)
+  exchangeOAuthCode: async (code: string, codeVerifier: string): Promise<AuthResponse> => {
+    console.log('[AUTH_DEBUG] API: exchangeOAuthCode called', { hasCode: !!code, hasCodeVerifier: !!codeVerifier });
+    try {
+      const requestBody = { code, codeVerifier };
+      console.log('[AUTH_DEBUG] API: Making POST request to /auth/oauth/exchange');
+      
+      const response = await apiCall<AuthResponse>('/auth/oauth/exchange', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('[AUTH_DEBUG] API: Response received', { success: response.success, hasData: !!response.data, error: response.error });
+      
+      if (!response.success || !response.data) {
+        // Extract error message from response
+        const errorMsg = response.error || response.message || 'Failed to exchange OAuth code';
+        console.error('[AUTH_DEBUG] API: Exchange failed', { errorMsg, response });
+        throw new ApiError(400, errorMsg);
+      }
+      
+      // Transform response to match AuthResponse format
+      const oauthData = response.data as any;
+      console.log('[AUTH_DEBUG] API: OAuth data extracted', { hasToken: !!oauthData.token, hasUserId: !!oauthData.userId, hasEmail: !!oauthData.email });
+      
+      // Validate required fields
+      if (!oauthData.token || !oauthData.userId || !oauthData.email) {
+        console.error('[AUTH_DEBUG] API: Missing required fields', { 
+          hasToken: !!oauthData.token, 
+          hasUserId: !!oauthData.userId, 
+          hasEmail: !!oauthData.email 
+        });
+        throw new ApiError(400, 'Invalid response from server: missing required fields');
+      }
+      
+      const authResponse = {
+        token: oauthData.token,
+        user: {
+          id: oauthData.userId,
+          email: oauthData.email,
+          name: oauthData.name || '',
+          avatar: oauthData.avatar,
+        },
+      };
+      
+      console.log('[AUTH_DEBUG] API: Exchange successful', { userEmail: authResponse.user.email, userId: authResponse.user.id });
+      return authResponse;
+    } catch (error) {
+      // Re-throw ApiError as-is
+      if (error instanceof ApiError) {
+        console.error('[AUTH_DEBUG] API: ApiError thrown', { status: error.status, message: error.message });
+        throw error;
+      }
+      // Wrap other errors
+      console.error('[AUTH_DEBUG] API: Unexpected error during exchange', error);
+      throw new ApiError(500, error instanceof Error ? error.message : 'Failed to exchange OAuth code');
+    }
   },
 
   // Logout (if you have server-side logout)

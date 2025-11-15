@@ -13,32 +13,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Fast initial check - non-blocking
     const quickCheck = async () => {
+      console.log('[AUTH_DEBUG] AuthContext: Initial auth check started');
       try {
         const token = localStorage.getItem('authToken');
         const userData = localStorage.getItem('userData');
         
+        console.log('[AUTH_DEBUG] AuthContext: Token exists:', !!token, 'UserData exists:', !!userData);
+        
         if (token && userData) {
           const user = JSON.parse(userData);
+          console.log('[AUTH_DEBUG] AuthContext: Setting user from localStorage:', { email: user.email, id: user.id });
           setUser(user);
-          
-          // Optionally verify token with backend in background
-          try {
-            const isValid = await authAPI.verifyToken(token);
-            if (!isValid) {
-              // Token is invalid, clear storage
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('userData');
-              setUser(null);
-            }
-          } catch (error) {
-            // If verification fails, keep user logged in but log the error
-            console.warn('Token verification failed:', error);
-          }
+          console.log('[AUTH_DEBUG] AuthContext: User state set, isAuthenticated will be:', !!user);
+        } else {
+          console.log('[AUTH_DEBUG] AuthContext: No stored auth data found');
         }
       } catch (error) {
-        console.error('Quick auth check failed:', error);
+        console.error('[AUTH_DEBUG] AuthContext: Quick auth check failed:', error);
       } finally {
         setIsLoading(false);
+        console.log('[AUTH_DEBUG] AuthContext: Initial auth check completed, isLoading set to false');
       }
     };
 
@@ -120,33 +114,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // OAuth login - redirect to backend OAuth endpoint
+  // OAuth login - redirect to backend OAuth endpoint with PKCE
   const loginWithGoogle = async (): Promise<void> => {
+    console.log('[AUTH_DEBUG] AuthContext: loginWithGoogle called');
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
-      const oauthUrl = `${backendUrl}/auth/oauth2/authorization/google`;
+      // Import PKCE utilities
+      const { generateCodeVerifier, generateCodeChallenge, storeCodeVerifier } = await import('@/lib/pkce');
       
-      // Redirect to backend OAuth endpoint
+      // Step 1: Generate PKCE code verifier (random string)
+      const codeVerifier = generateCodeVerifier();
+      console.log('[AUTH_DEBUG] AuthContext: PKCE code_verifier generated');
+      
+      // Step 2: Compute code challenge (SHA256 hash of verifier)
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      console.log('[AUTH_DEBUG] AuthContext: PKCE code_challenge computed');
+      
+      // Step 3: Store code_verifier in sessionStorage (will be used during code exchange)
+      storeCodeVerifier(codeVerifier);
+      console.log('[AUTH_DEBUG] AuthContext: PKCE code_verifier stored in sessionStorage');
+      
+      // Step 4: Build OAuth URL with PKCE parameters
+      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/v1/api';
+      const oauthUrl = `${backendUrl}/auth/oauth2/authorization/google?code_challenge=${encodeURIComponent(codeChallenge)}&code_challenge_method=S256`;
+      
+      console.log('[AUTH_DEBUG] AuthContext: Redirecting to OAuth URL:', oauthUrl);
+      // Step 5: Redirect to backend OAuth endpoint
       window.location.href = oauthUrl;
     } catch (error) {
-      console.error('Google OAuth redirect failed:', error);
+      console.error('[AUTH_DEBUG] AuthContext: Google OAuth redirect failed:', error);
+      // Clear PKCE data on error
+      try {
+        const { clearPKCEData } = await import('@/lib/pkce');
+        clearPKCEData();
+      } catch (clearError) {
+        console.error('[AUTH_DEBUG] AuthContext: Failed to clear PKCE data:', clearError);
+      }
       throw error;
     }
   };
 
   // Handle OAuth success (called from success page)
-  const handleOAuthSuccess = (token: string, userInfo: { email: string; name: string; userId: string }) => {
+  const handleOAuthSuccess = (token: string, userInfo: { email: string; name: string; userId: string; avatar?: string }) => {
+    console.log('[AUTH_DEBUG] AuthContext: handleOAuthSuccess called', { email: userInfo.email, userId: userInfo.userId });
+    
     const user: User = {
       id: userInfo.userId,
       email: userInfo.email,
       name: userInfo.name,
+      avatar: userInfo.avatar || undefined,
     };
 
     // Store token and user data
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
+    console.log('[AUTH_DEBUG] AuthContext: Token and userData stored in localStorage');
+    
     setUser(user);
+    console.log('[AUTH_DEBUG] AuthContext: User state updated, isAuthenticated:', true);
+    
     setIsLoading(false);
+    console.log('[AUTH_DEBUG] AuthContext: isLoading set to false');
   };
 
   const logout = async () => {
@@ -155,6 +182,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('userData');
     setUser(null);
   };
+
+  // Debug log when auth state changes
+  useEffect(() => {
+    console.log('[AUTH_DEBUG] AuthContext: State changed', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      isLoading,
+      isAuthenticated: !!user,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, isLoading]);
 
   const value: AuthContextType = {
     user,

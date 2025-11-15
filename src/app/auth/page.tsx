@@ -11,19 +11,40 @@ function AuthContent() {
   const [oauthError, setOauthError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     // Check for OAuth error in URL params
     const error = searchParams.get('error');
+    console.log('[AUTH_DEBUG] AuthPage: Checking URL params', { error });
     if (error === 'oauth_failed') {
+      console.log('[AUTH_DEBUG] AuthPage: OAuth error detected, setting error message');
       setOauthError('Google sign-in failed. Please try again or use email/password.');
     }
   }, [searchParams]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (but wait for loading to complete)
+  useEffect(() => {
+    console.log('[AUTH_DEBUG] AuthPage: Redirect check', { isLoading, isAuthenticated });
+    if (!isLoading && isAuthenticated) {
+      console.log('[AUTH_DEBUG] AuthPage: User authenticated, redirecting to dashboard');
+      router.replace('/dashboard');
+    } else {
+      console.log('[AUTH_DEBUG] AuthPage: Not redirecting', { isLoading, isAuthenticated });
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking auth status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-stock">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Don't render form if authenticated (redirect will happen)
   if (isAuthenticated) {
-    router.push('/dashboard');
     return null;
   }
 

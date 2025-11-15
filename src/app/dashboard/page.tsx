@@ -2,9 +2,21 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useState } from 'react';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const [imageError, setImageError] = useState(false);
+
+  // Get user initial for fallback
+  const getUserInitial = (name?: string) => {
+    if (!name) return 'U';
+    return name.trim().charAt(0).toUpperCase();
+  };
+
+  // Check if avatar is valid (base64 data URL or external URL)
+  const hasValidAvatar = user?.avatar && 
+    (user.avatar.startsWith('data:image/') || user.avatar.startsWith('http://') || user.avatar.startsWith('https://'));
 
   return (
     <ProtectedRoute>
@@ -20,12 +32,20 @@ export default function DashboardPage() {
                   {user?.email}
                 </p>
               </div>
-              {user?.avatar && (
+              {hasValidAvatar && !imageError ? (
                 <img
                   src={user.avatar}
                   alt="Profile"
-                  className="w-12 h-12 rounded-full"
+                  className="w-12 h-12 rounded-full border-2 border-white/30 object-cover"
+                  onError={() => {
+                    console.log('[AUTH_DEBUG] Dashboard: Image load error, falling back to initials');
+                    setImageError(true);
+                  }}
                 />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-semibold border-2 border-white/30">
+                  {getUserInitial(user?.name)}
+                </div>
               )}
             </div>
           </div>

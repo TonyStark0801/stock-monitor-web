@@ -175,7 +175,7 @@ function OAuthSuccessContent() {
 
     processOAuthCallback();
   }, [searchParams, handleOAuthSuccess, router, hasRedirected, isAuthenticated, status]);
-
+  
   // Also redirect if already authenticated (in case of page refresh or state already set)
   // BUT ONLY if status is success - never redirect on error
   useEffect(() => {
